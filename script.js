@@ -276,16 +276,16 @@
 	        document.body.style.overflow = 'auto';
 	    },
 
-			addTicket: function (type, name, placeholder, width) {
-				let input = document.createElement('input');
-				input.type = type;
-				input.name = name;
-				input.placeholder = placeholder;
-				input.className = 'tickets tickets_input';
-				input.style.width = `${width}%`;
-				
-				return input;
-			},
+		addTicket: function (type, name, placeholder, width) {
+			let input = document.createElement('input');
+			input.type = type;
+			input.name = name;
+			input.placeholder = placeholder;
+			input.className = 'tickets tickets_input';
+			input.style.width = `${width}%`;
+			
+			return input;
+		},
 
 	    select: function ( el ) {
 	        let parent = el.parentNode;
@@ -313,7 +313,7 @@
 	    },
 
 	    getValue: function ( name ) {
-	    	return document.getElementsByName( name )[0].value;
+	    	return Array.from(document.getElementsByName(name), element => parseInt(element.value));
 	    },
 
 	    createButton: function ( text, func ) {
@@ -467,20 +467,21 @@
 	    filter: function ( tickets, settings ) {
 	    	tickets = tickets || Tickets.__tickets
 	    	let filtered = [];
-
+			const blockValues = settings.ticket.block ? settings.ticket.block.map(value => parseInt(value)) : [];
+			const rowValues = settings.ticket.row ? settings.ticket.row.map(value => parseInt(value)) : [];
+			const seatValues = settings.ticket.seat ? settings.ticket.seat.map(value => parseInt(value)) : [];
 	    	Tickets.__tickets.forEach( function( ticket ) {
 	    		if ( !!settings.min && ticket.price < settings.min ) return;
 	    		if ( !!settings.max && ticket.price > settings.max ) return;
 
-	    		if ( !!settings.ticket.block && settings.ticket.block != ticket.block ) return;
-	    		if ( !!settings.ticket.row && settings.ticket.row != ticket.row ) return;
-	    		if ( !!settings.ticket.seat && settings.ticket.block != ticket.seat ) return;
+	    		if (!isNaN(blockValues[0]) && !blockValues.includes(parseInt(ticket.block))) return;
+				if (!isNaN(rowValues[0]) && !rowValues.includes(ticket.row)) return;
+				if (!isNaN(seatValues[0]) && !seatValues.includes(ticket.seat)) return;
+	    		filtered.push( ticket );
+	    	});
 
-	    		filtered.push( ticket )
-	    	} )
-
-	    	Tickets.__tickets = filtered
-	    	return filtered
+	    	Tickets.__tickets = filtered;
+	    	return filtered;
 	    },
 
 	    sort: function ( tickets ) {
@@ -505,11 +506,12 @@
 	            var t2 = t1;
 	            var block = t1.block;
 	            var row = t1.row;
-
+				console.log("T1!!!!",t1)
 	            var count = 0;
 
 	            for ( var k = 0; k < c; k++ ) {
 	                t2 = tickets[k];
+					console.log("T2!!!!",t2)
 	                d = Math.abs( t1.seat - t2.seat );
 	                if ( t1.block == t2.block && t1.row == t2.row && d == 1 ) {
 	                    if ( !( !!relatives[block] ) ) {
@@ -570,7 +572,7 @@
 	    },
 
 	    add: function ( selected_tickets ) {
-	    	tickets = selected_tickets || Tickets.__selected
+	    	selected_tickets = selected_tickets || Tickets.__selected
 
 	    	let pos = 0
 
@@ -579,9 +581,9 @@
 	    	function tm() {
 	    		Tickets.timeout = setTimeout( tm, 100 )
 	    		if ( Data.state.waiting ) return
-	    		console.log( 'Trying to add ticket to cart:', tickets[pos] )
-	    		tickets[pos].btn.click()
-	    		console.log( 'Button: ', tickets[pos].btn );
+	    		console.log( 'Trying to add ticket to cart:', selected_tickets[pos] )
+	    		selected_tickets[pos].btn.click()
+	    		console.log( 'Button: ', selected_tickets[pos].btn );
 
 	    		pos++
 
@@ -594,10 +596,10 @@
 				var tr = table[0].getElementsByTagName('tr'); 
 
 
-	    		if ( pos >= tickets.length && parseInt(tr[2].innerText) > 0) {
-	    			console.log( 'Tickets added:', tickets.length )
+	    		if ( pos >= selected_tickets.length && parseInt(tr[2].innerText) > 0) {
+	    			console.log( 'Tickets added:', selected_tickets.length )
 	    			var n = new Notification( 'Билеты добавлены', {
-	    				'body': "Добавлено билетов в корзину: " + tickets.length,
+	    				'body': "Добавлено билетов в корзину: " + selected_tickets.length,
 	    				'image': 'https://image.freepik.com/free-photo/_1101-57.jpg'
 	    			} );
 					
@@ -892,9 +894,10 @@
         var max = parseInt( UI.getValue( 'maximum_price' ) )
         var interval = parseInt( UI.getValue( 'interval' ) )
 
-        var block = parseInt( UI.getValue( 'block' ) )
-        var row = parseInt( UI.getValue( 'row' ) )
-        var seat = parseInt( UI.getValue( 'seat' ) )
+        var block = UI.getValue( 'block' )
+        var row = UI.getValue( 'row' )
+        var seat = UI.getValue( 'seat' )
+		console.log("GETVALUE!!! ", block, row, seat)
 
         min = isNaN( min ) ? 0 : min
         max = isNaN( max ) ? 0 : max
