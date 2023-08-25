@@ -1,0 +1,19 @@
+{
+  "manifest_version": 2,
+  "name": "fcbayern",
+  "version": "0.1",
+  "permissions": ["tabs", "activeTab", "webRequest", "webRequestBlocking", "*://*.tickets.fcbayern.com/*", "contentSettings", "localStorage" ],
+  "content_scripts": [
+  {
+    "matches": [
+		"*://*.tickets.fcbayern.com/*"
+    ],
+		"js": ["content.js"]
+	}
+  ],
+	"web_accessible_resources": [
+		"script.js",
+		"sms-android.mp3"
+	]
+
+}
